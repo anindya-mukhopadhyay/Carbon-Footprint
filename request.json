@@ -1,0 +1,7 @@
+{
+  "event": {
+    "token": "mock-token-for-initial-assessment-testing",
+    "expectedAction": "LOGIN",
+    "siteKey": "6Ldbfx8tAAAAAM3JAt9oC0ttn8C8WDAgyDh-xC8j"
+  }
+}

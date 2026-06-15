@@ -1,0 +1,16 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    env_file: .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - carbon-core
+
+  carbon-core:
+    build:
+      context: services/carbon-core
+    ports:
+      - "8090:8090"

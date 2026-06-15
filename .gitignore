@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+target/
+
+# Build outputs
+dist/
+coverage/
+.next/
+.turbo/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Local tooling
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
+
+# Service credentials
+*.pem
+*.key
+*service-account*.json
+google-application-credentials.json
