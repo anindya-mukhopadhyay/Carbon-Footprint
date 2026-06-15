@@ -57,8 +57,26 @@ const dietFactors = {
 };
 
 export async function calculateCarbon(input: CarbonInput): Promise<CarbonResult> {
+  try {
+    const response = await fetch(`${env.CARBON_CORE_URL}/calculate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(input),
+      signal: AbortSignal.timeout(5000)
+    });
+
+    if (response.ok) {
+      return (await response.json()) as CarbonResult;
+    }
+  } catch (error) {
+    console.warn("Failed to contact Rust carbon-core service, falling back to local calculation:", error);
+  }
+
   return calculateCarbonLocally(input);
 }
+
 
 export function calculateCarbonLocally(input: CarbonInput): CarbonResult {
   const transport = input.distanceKm * transportFactors[input.transportMode];

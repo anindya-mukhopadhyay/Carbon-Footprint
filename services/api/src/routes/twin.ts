@@ -10,7 +10,12 @@ const twinSchema = z.object({
 
 export const twinRouter = Router();
 
-twinRouter.post("/simulate", validateBody(twinSchema), (request, response) => {
-  const body = request.body as z.infer<typeof twinSchema>;
-  response.json(simulateCarbonTwin(body.profile));
+twinRouter.post("/simulate", validateBody(twinSchema), async (request, response, next) => {
+  try {
+    const body = request.body as z.infer<typeof twinSchema>;
+    const result = await simulateCarbonTwin(body.profile);
+    response.json(result);
+  } catch (error) {
+    next(error);
+  }
 });

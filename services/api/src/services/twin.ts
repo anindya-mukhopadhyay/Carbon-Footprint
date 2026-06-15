@@ -1,6 +1,24 @@
-import { calculateCarbonLocally, type CarbonInput } from "./carbon.js";
+import { env } from "../config/env.js";
+import { calculateCarbonLocally, type CarbonInput, type TwinScenario } from "./carbon.js";
 
-export function simulateCarbonTwin(profile: CarbonInput) {
+export async function simulateCarbonTwin(profile: CarbonInput) {
+  try {
+    const response = await fetch(`${env.CARBON_CORE_URL}/simulate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ profile }),
+      signal: AbortSignal.timeout(5000)
+    });
+
+    if (response.ok) {
+      return (await response.json()) as { scenarios: TwinScenario[] };
+    }
+  } catch (error) {
+    console.warn("Failed to contact Rust carbon-core service for twin simulation, falling back to local simulation:", error);
+  }
+
   const baseline = calculateCarbonLocally(profile).annualKg;
 
   const scenarios = [
@@ -46,3 +64,4 @@ export function simulateCarbonTwin(profile: CarbonInput) {
     }))
   };
 }
+
