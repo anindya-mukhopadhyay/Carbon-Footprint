@@ -14,7 +14,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY services/api/package.json services/api/package.json
 COPY apps/web/package.json apps/web/package.json
-RUN npm ci --omit=dev --workspace services/api --include-workspace-root && npm cache clean --force
+RUN npm ci --omit=dev --ignore-scripts --workspace services/api --include-workspace-root && npm cache clean --force
 COPY --from=builder /workspace/services/api/dist services/api/dist
 USER node
 EXPOSE 8080
