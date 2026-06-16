@@ -66,7 +66,7 @@ export function AICoach() {
       </div>
       <div className="quick-prompts" aria-label="Suggested questions">
         {["Lower my commute", "Create a 30-day plan", "Explain my score"].map((prompt) => (
-          <button key={prompt} onClick={() => setMessage(prompt)} type="button">
+          <button key={prompt} onClick={() => setMessage(prompt)} type="button" aria-label={`Ask coach: ${prompt}`}>
             {prompt}
           </button>
         ))}

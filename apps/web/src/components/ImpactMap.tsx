@@ -15,7 +15,7 @@ export function ImpactMap() {
           <span className="eyebrow">Google Maps</span>
           <h3 id="map-title">Sustainable choices, nearby</h3>
         </div>
-        <button type="button">Open map</button>
+        <button type="button" aria-label="Open impact map">Open map</button>
       </div>
       <div className="map-illustration" role="img" aria-label="Map of nearby sustainable places">
         <div className="road road-one" />

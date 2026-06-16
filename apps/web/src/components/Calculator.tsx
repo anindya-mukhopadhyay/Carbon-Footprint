@@ -145,7 +145,7 @@ export function Calculator() {
               </label>
             ))}
           </fieldset>
-          <Button type="submit">
+          <Button type="submit" aria-label="Calculate footprint">
             <CalculatorIcon size={18} aria-hidden="true" />
             Calculate my footprint
           </Button>
