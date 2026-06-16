@@ -16,6 +16,7 @@ export function getFirestore() {
   return getFirebaseAdmin().firestore();
 }
 
+// Uses any to bypass ESM/CJS type mismatch in @google-cloud/storage
 export function getStorageBucket(): any {
   const app = getFirebaseAdmin();
   return app.storage().bucket(env.FIREBASE_STORAGE_BUCKET);

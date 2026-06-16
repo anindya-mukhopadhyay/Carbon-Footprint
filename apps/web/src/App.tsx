@@ -21,10 +21,7 @@ import {
   Users,
   X
 } from "lucide-react";
-import { AICoach } from "@/components/AICoach";
 import { CarbonChart } from "@/components/CarbonChart";
-import { CarbonTwin } from "@/components/CarbonTwin";
-import { ImpactMap } from "@/components/ImpactMap";
 import { MetricCard } from "@/components/MetricCard";
 import { Button } from "@/components/ui/button";
 import { Auth } from "@/components/Auth";
@@ -33,6 +30,7 @@ import { initializeTelemetry, auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { uploadReceipt, createEntry, getEntries, type ReceiptAnalysisResult, type FootprintEntry } from "@/lib/api";
 import { AccessibilityPanel } from "@/features/AccessibilityPanel";
+import { DailyActions } from "@/components/DailyActions";
 
 const Calculator = lazy(async () => {
   const module = await import("@/components/Calculator");
@@ -43,6 +41,22 @@ const BreakdownChart = lazy(async () => {
   const module = await import("@/components/BreakdownChart");
   return { default: module.BreakdownChart };
 });
+
+const AICoach = lazy(async () => {
+  const module = await import("@/components/AICoach");
+  return { default: module.AICoach };
+});
+
+const CarbonTwin = lazy(async () => {
+  const module = await import("@/components/CarbonTwin");
+  return { default: module.CarbonTwin };
+});
+
+const ImpactMap = lazy(async () => {
+  const module = await import("@/components/ImpactMap");
+  return { default: module.ImpactMap };
+});
+
 
 declare global {
   interface Window {
@@ -76,18 +90,18 @@ export function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [fontScale, setFontScale] = useState(1);
   const [user, setUser] = useState<User | null>(() => {
-    if (typeof window !== "undefined" && (window as any).Cypress) {
+    if (typeof window !== "undefined" && window.Cypress) {
       return {
         uid: "cypress-test-user",
         email: "test@example.com",
         displayName: "Cypress Tester",
         getIdToken: async () => "mock-cypress-token"
-      } as any;
+      } as unknown as User;
     }
     return null;
   });
   const [authLoading, setAuthLoading] = useState(() => {
-    if (typeof window !== "undefined" && (window as any).Cypress) {
+    if (typeof window !== "undefined" && window.Cypress) {
       return false;
     }
     return true;
@@ -123,7 +137,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && (window as any).Cypress) {
+    if (typeof window !== "undefined" && window.Cypress) {
       return;
     }
     if (!auth) {
@@ -200,8 +214,9 @@ export function App() {
       setScanCategory(category);
       setScanEmission(emission);
       setScanModalOpen(true);
-    } catch (err: any) {
-      setScanError(err.message || "Failed to analyze receipt.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to analyze receipt.";
+      setScanError(msg);
     } finally {
       setScanning(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -227,8 +242,9 @@ export function App() {
       // Refresh footprint entries
       const data = await getEntries(idToken);
       setEntries(data);
-    } catch (err: any) {
-      alert(err.message || "Failed to save footprint entry.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to save footprint entry.";
+      alert(msg);
     } finally {
       setSavingScan(false);
     }
@@ -598,8 +614,14 @@ export function App() {
             </article>
           </div>
 
+          <div className="my-6">
+            <DailyActions />
+          </div>
+
           <div className="dashboard-lower">
-            <AICoach />
+            <Suspense fallback={<div className="section-loader">Loading AI coach...</div>}>
+              <AICoach />
+            </Suspense>
             <article className="scan-card">
               <div className="scan-graphic">
                 <ScanLine size={35} aria-hidden="true" />
@@ -641,7 +663,9 @@ export function App() {
           <Calculator />
         </Suspense>
 
-        <CarbonTwin />
+        <Suspense fallback={<div className="section-loader">Loading AI Carbon Twin simulator...</div>}>
+          <CarbonTwin />
+        </Suspense>
 
         <section className="community-section section-shell" id="community" aria-labelledby="community-title">
           <div className="section-heading">
@@ -717,7 +741,9 @@ export function App() {
         </section>
 
         <section className="map-and-impact section-shell">
-          <ImpactMap />
+          <Suspense fallback={<div className="section-loader">Loading ecological impact map...</div>}>
+            <ImpactMap />
+          </Suspense>
           <article className="collective-card">
             <span className="eyebrow light">Community impact</span>
             <h2>We are changing the atmosphere, together.</h2>
@@ -743,7 +769,7 @@ export function App() {
           />
         </section>
 
-        {typeof window !== "undefined" && (window as any).Cypress && (
+        {typeof window !== "undefined" && !!window.Cypress && (
           <section className="section-shell" style={{ padding: "2rem", background: "rgba(255,255,255,0.05)", borderRadius: "2rem", border: "1px solid rgba(255,255,255,0.1)", marginBottom: "2rem" }}>
             <h2 className="text-xl font-bold text-soil mb-4">Understand, predict</h2>
             <div className="grid gap-3">
@@ -845,7 +871,7 @@ export function App() {
                 <label className="block text-xs font-semibold text-[#afc4b5] mb-1.5">Emission Category</label>
                 <select
                   value={scanCategory}
-                  onChange={(e) => setScanCategory(e.target.value as any)}
+                  onChange={(e) => setScanCategory(e.target.value as "transport" | "energy" | "food" | "lifestyle")}
                   className="w-full bg-[#0c1813] border border-[#294537] rounded-xl py-2.5 px-4 text-[#eff8f0] text-sm focus:outline-none focus:border-[#74b98a] transition-all"
                 >
                   <option value="energy">Energy (Electricity, LPG, Gas)</option>

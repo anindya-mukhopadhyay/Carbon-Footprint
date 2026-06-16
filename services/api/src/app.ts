@@ -50,7 +50,8 @@ export function createApp() {
   );
   app.use(compression());
   app.use(hpp());
-  app.use((pinoHttp as any)({ redact: ["req.headers.authorization", "req.headers.cookie"] }));
+  // @ts-expect-error - pinoHttp types mismatch with esm resolution
+  app.use(pinoHttp({ redact: ["req.headers.authorization", "req.headers.cookie"] }));
   app.use(express.json({ limit: "100kb" }));
   app.use(express.urlencoded({ extended: false, limit: "10kb" }));
   app.use(standardLimiter);

@@ -219,23 +219,23 @@ fn recommendations(
     lifestyle: f64,
     input: &CarbonInput,
 ) -> Vec<String> {
-    let mut items = vec![
-        "Set a weekly CO2 budget and review the highest category every Sunday.".to_string(),
-        "Upload utility bills and receipts so EcoTrack AI can replace estimates with real data.".to_string(),
-    ];
+    let mut items = Vec::with_capacity(6);
 
     if transport > 5.0 && input.transport_mode == TransportMode::Car {
-        items.insert(0, "Use public transport or EV pooling for 3 commutes to cut travel emissions by roughly 18%.".to_string());
+        items.push("Use public transport or EV pooling for 3 commutes to cut travel emissions by roughly 18%.".to_string());
     }
     if food > 5.0 {
-        items.insert(0, "Move two high-meat meals to vegetarian or vegan options this week.".to_string());
+        items.push("Move two high-meat meals to vegetarian or vegan options this week.".to_string());
     }
     if energy > 4.0 {
-        items.insert(0, "Shift laundry, charging, and cooling into solar or off-peak hours.".to_string());
+        items.push("Shift laundry, charging, and cooling into solar or off-peak hours.".to_string());
     }
     if lifestyle > 8.0 {
-        items.insert(0, "Bundle online orders and choose slower consolidated delivery.".to_string());
+        items.push("Bundle online orders and choose slower consolidated delivery.".to_string());
     }
+
+    items.push("Set a weekly CO2 budget and review the highest category every Sunday.".to_string());
+    items.push("Upload utility bills and receipts so EcoTrack AI can replace estimates with real data.".to_string());
 
     items.truncate(4);
     items

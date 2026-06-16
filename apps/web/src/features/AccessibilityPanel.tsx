@@ -64,25 +64,42 @@ export function AccessibilityPanel({
           These tools are product features, not afterthoughts.
         </CardTitle>
         <div className="mt-6 grid gap-4 md:grid-cols-4">
-          <label className="grid gap-2 text-sm font-bold text-soil">
-            Theme
-            <select value={theme} onChange={(event) => setTheme(event.target.value as Theme)} className="rounded-2xl border border-soil/20 bg-white px-4 py-3">
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
+          <div className="grid gap-2">
+            <label htmlFor="theme-select" className="text-sm font-bold text-soil">
+              Theme
+            </label>
+            <select
+              id="theme-select"
+              value={theme}
+              onChange={(event) => setTheme(event.target.value as Theme)}
+              className="rounded-2xl border border-soil/20 bg-white px-4 py-3 text-black"
+            >
+              <option value="light" className="text-black bg-white">Light</option>
+              <option value="dark" className="text-black bg-white">Dark</option>
             </select>
-          </label>
+          </div>
 
-          <label className="grid gap-2 text-sm font-bold text-soil">
-            Contrast
-            <select value={contrast} onChange={(event) => setContrast(event.target.value as Contrast)} className="rounded-2xl border border-soil/20 bg-white px-4 py-3">
-              <option value="standard">Standard</option>
-              <option value="high">High contrast</option>
+          <div className="grid gap-2">
+            <label htmlFor="contrast-select" className="text-sm font-bold text-soil">
+              Contrast
+            </label>
+            <select
+              id="contrast-select"
+              value={contrast}
+              onChange={(event) => setContrast(event.target.value as Contrast)}
+              className="rounded-2xl border border-soil/20 bg-white px-4 py-3 text-black"
+            >
+              <option value="standard" className="text-black bg-white">Standard</option>
+              <option value="high" className="text-black bg-white">High contrast</option>
             </select>
-          </label>
+          </div>
 
-          <label className="grid gap-2 text-sm font-bold text-soil">
-            Font size
+          <div className="grid gap-2">
+            <label htmlFor="font-size-slider" className="text-sm font-bold text-soil">
+              Font size
+            </label>
             <input
+              id="font-size-slider"
               aria-label="Adjust font size"
               type="range"
               min="0.9"
@@ -91,17 +108,24 @@ export function AccessibilityPanel({
               value={fontScale}
               onChange={(event) => setFontScale(Number(event.target.value))}
             />
-          </label>
+          </div>
 
-          <label className="grid gap-2 text-sm font-bold text-soil">
-            Language
-            <select value={language} onChange={(event) => setLanguage(event.target.value)} className="rounded-2xl border border-soil/20 bg-white px-4 py-3">
-              <option value="en">English</option>
-              <option value="hi">Hindi</option>
-              <option value="bn">Bengali</option>
-              <option value="es">Spanish</option>
+          <div className="grid gap-2">
+            <label htmlFor="language-select" className="text-sm font-bold text-soil">
+              Language
+            </label>
+            <select
+              id="language-select"
+              value={language}
+              onChange={(event) => setLanguage(event.target.value)}
+              className="rounded-2xl border border-soil/20 bg-white px-4 py-3 text-black"
+            >
+              <option value="en" className="text-black bg-white">English</option>
+              <option value="hi" className="text-black bg-white">Hindi</option>
+              <option value="bn" className="text-black bg-white">Bengali</option>
+              <option value="es" className="text-black bg-white">Spanish</option>
             </select>
-          </label>
+          </div>
         </div>
 
         <div className="mt-5 flex flex-wrap gap-3">

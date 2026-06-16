@@ -31,6 +31,12 @@ export type TwinScenario = {
   annualKg: number;
 };
 
+export type Forecast = {
+  months: Array<{ month: string; predictedKg: number; lowerKg: number; upperKg: number }>;
+  confidence: number;
+  narrative: string;
+};
+
 export type CarbonResult = {
   dailyKg: number;
   weeklyKg: number;
@@ -69,14 +75,14 @@ export async function simulateTwin(input: CarbonInput, idToken?: string): Promis
   return response.json();
 }
 
-export async function getForecast(profile: CarbonInput, idToken?: string): Promise<any> {
+export async function getForecast(history: number[], idToken?: string): Promise<Forecast> {
   const response = await fetch(`${API_URL}/api/v1/predictions/forecast`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}) },
-    body: JSON.stringify({ profile })
+    body: JSON.stringify({ history })
   });
   if (!response.ok) throw new Error("Forecast failed.");
-  return response.json();
+  return response.json() as Promise<Forecast>;
 }
 
 export async function calculateCarbon(input: CarbonInput, idToken?: string): Promise<CarbonResult> {

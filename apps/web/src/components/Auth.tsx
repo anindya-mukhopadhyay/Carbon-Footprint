@@ -1,81 +1,27 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
   updateProfile,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  type ConfirmationResult
+  type User as FirebaseUser
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, googleProvider, db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { Leaf, LogIn, Mail, Lock, Phone, User, Chrome, CheckCircle2 } from "lucide-react";
+import { Leaf, LogIn, Mail, Lock, User, Chrome, CheckCircle2 } from "lucide-react";
 
-type AuthTab = "signin" | "signup" | "phone";
+type AuthTab = "signin" | "signup";
 
 export function Auth() {
   const [tab, setTab] = useState<AuthTab>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [otp, setOtp] = useState("");
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
-
-  useEffect(() => {
-    if (!auth || tab !== "phone") {
-      if (recaptchaVerifierRef.current) {
-        try {
-          recaptchaVerifierRef.current.clear();
-        } catch (e) {
-          console.error("Error clearing recaptcha", e);
-        }
-        recaptchaVerifierRef.current = null;
-        setRecaptchaVerifier(null);
-      }
-      return;
-    }
-
-    try {
-      const container = document.getElementById("recaptcha-container");
-      if (container) {
-        container.innerHTML = "";
-      }
-
-      const verifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-        size: "invisible",
-        callback: () => {
-          // reCAPTCHA solved
-        }
-      });
-      recaptchaVerifierRef.current = verifier;
-      setRecaptchaVerifier(verifier);
-    } catch (err: any) {
-      console.error("Failed to initialize reCAPTCHA on tab change:", err);
-      setError("Failed to initialize reCAPTCHA: " + err.message);
-    }
-
-    return () => {
-      if (recaptchaVerifierRef.current) {
-        try {
-          recaptchaVerifierRef.current.clear();
-        } catch (e) {
-          console.error("Error clearing recaptcha on unmount/cleanup", e);
-        }
-        recaptchaVerifierRef.current = null;
-        setRecaptchaVerifier(null);
-      }
-    };
-  }, [tab]);
 
   if (!auth) {
     return (
@@ -91,7 +37,7 @@ export function Auth() {
     );
   }
 
-  const syncUser = async (firebaseUser: any) => {
+  const syncUser = async (firebaseUser: FirebaseUser) => {
     if (!db) return;
     try {
       const userRef = doc(db, "users", firebaseUser.uid);
@@ -117,14 +63,14 @@ export function Auth() {
   };
 
   const executeRecaptcha = async (action: string): Promise<string | null> => {
-    if (typeof window === "undefined" || !(window as any).grecaptcha?.enterprise) {
+    if (typeof window === "undefined" || !window.grecaptcha?.enterprise) {
       console.warn("reCAPTCHA Enterprise not loaded yet.");
       return null;
     }
     return new Promise((resolve) => {
-      (window as any).grecaptcha.enterprise.ready(async () => {
+      window.grecaptcha!.enterprise!.ready(async () => {
         try {
-          const token = await (window as any).grecaptcha.enterprise.execute(
+          const token = await window.grecaptcha!.enterprise!.execute(
             "6Ldbfx8tAAAAAM3JAt9oC0ttn8C8WDAgyDh-xC8j",
             { action }
           );
@@ -146,8 +92,9 @@ export function Auth() {
       await executeRecaptcha("LOGIN");
       const cred = await signInWithEmailAndPassword(auth, email, password);
       await syncUser(cred.user);
-    } catch (err: any) {
-      setError(err.message || "Failed to sign in. Please check your credentials.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to sign in. Please check your credentials.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -165,8 +112,9 @@ export function Auth() {
         await updateProfile(cred.user, { displayName: name });
         await syncUser({ ...cred.user, displayName: name });
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to sign up. Please try again.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to sign up. Please try again.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -180,57 +128,9 @@ export function Auth() {
       await executeRecaptcha("GOOGLE_SIGNIN");
       const cred = await signInWithPopup(auth, googleProvider);
       await syncUser(cred.user);
-    } catch (err: any) {
-      setError(err.message || "Google Sign-In failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!auth) return;
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-    try {
-      await executeRecaptcha("SEND_OTP");
-      let verifier = recaptchaVerifierRef.current;
-      if (!verifier) {
-        const container = document.getElementById("recaptcha-container");
-        if (container) {
-          container.innerHTML = "";
-        }
-        verifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
-          callback: () => {
-            // reCAPTCHA solved
-          }
-        });
-        recaptchaVerifierRef.current = verifier;
-        setRecaptchaVerifier(verifier);
-      }
-      const confirmation = await signInWithPhoneNumber(auth, phoneNumber, verifier);
-      setConfirmationResult(confirmation);
-      setSuccess("OTP sent successfully to " + phoneNumber);
-    } catch (err: any) {
-      setError(err.message || "Failed to send OTP. Make sure phone number format is correct (e.g. +11234567890).");
-      // Keep the recaptchaVerifierRef.current instance alive for retries to prevent duplicate rendering errors.
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!confirmationResult) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const cred = await confirmationResult.confirm(otp);
-      await syncUser(cred.user);
-    } catch (err: any) {
-      setError(err.message || "Invalid OTP code. Please try again.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Google Sign-In failed.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -238,8 +138,6 @@ export function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-tr from-[#0c1813] via-[#12231b] to-[#173b2c]">
-      <div id="recaptcha-container"></div>
-      
       <div className="w-full max-w-md bg-[#12231b]/80 border border-[#294537] rounded-[2rem] p-8 shadow-2xl backdrop-blur-xl transition-all duration-300">
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 bg-[#2d7656] text-white flex items-center justify-center rounded-2xl rotate-[-4deg] mb-3 shadow-lg">
@@ -251,18 +149,13 @@ export function Auth() {
 
         {/* Tab Buttons */}
         <div className="flex bg-[#0c1813] p-1 rounded-xl mb-6 border border-[#294537]/50">
-          {(["signin", "signup", "phone"] as const).map((t) => (
+          {(["signin", "signup"] as const).map((t) => (
             <button
               key={t}
               onClick={() => {
                 setTab(t);
                 setError(null);
                 setSuccess(null);
-                setConfirmationResult(null);
-                if (recaptchaVerifierRef.current) {
-                  recaptchaVerifierRef.current.clear();
-                  recaptchaVerifierRef.current = null;
-                }
               }}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
                 tab === t
@@ -270,7 +163,7 @@ export function Auth() {
                   : "text-[#afc4b5] hover:text-[#eff8f0]"
               }`}
             >
-              {t === "signin" ? "Sign In" : t === "signup" ? "Sign Up" : "Phone OTP"}
+              {t === "signin" ? "Sign In" : "Sign Up"}
             </button>
           ))}
         </div>
@@ -394,73 +287,6 @@ export function Auth() {
           </form>
         )}
 
-        {tab === "phone" && (
-          <div className="space-y-4">
-            {!confirmationResult ? (
-              <form onSubmit={handleSendOtp} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#afc4b5] mb-1.5">Phone Number</label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#afc4b5]">
-                      <Phone size={16} />
-                    </span>
-                    <input
-                      type="tel"
-                      required
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="+11234567890"
-                      className="w-full bg-[#0c1813] border border-[#294537] rounded-xl py-2.5 pl-10 pr-4 text-[#eff8f0] placeholder-[#596b62] text-sm focus:outline-none focus:border-[#74b98a] focus:ring-1 focus:ring-[#74b98a] transition-all"
-                    />
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full justify-center bg-[#74b98a] hover:bg-[#86c89c] text-[#0c1813] font-bold py-3 rounded-xl shadow-lg transition-all"
-                >
-                  {loading ? "Sending OTP..." : "Send OTP"}
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#afc4b5] mb-1.5">Enter 6-Digit OTP</label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    placeholder="123456"
-                    className="w-full bg-[#0c1813] border border-[#294537] rounded-xl py-2.5 px-4 text-[#eff8f0] placeholder-[#596b62] text-center text-lg tracking-widest focus:outline-none focus:border-[#74b98a] focus:ring-1 focus:ring-[#74b98a] transition-all"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      setConfirmationResult(null);
-                      setOtp("");
-                      setSuccess(null);
-                    }}
-                    className="flex-1 text-[#eff8f0] bg-[#1a3528] hover:bg-[#254d39] border-none py-3 rounded-xl font-bold transition-all"
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-[#74b98a] hover:bg-[#86c89c] text-[#0c1813] font-bold py-3 rounded-xl shadow-lg transition-all"
-                  >
-                    {loading ? "Verifying..." : "Verify OTP"}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
-        )}
 
         {/* Separator */}
         <div className="relative my-6 flex items-center justify-center">

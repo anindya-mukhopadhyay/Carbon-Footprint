@@ -18,8 +18,18 @@ export default defineConfig({
       output: {
         manualChunks: {
           charts: ["recharts"],
-          firebase: ["firebase/app", "firebase/auth", "firebase/analytics", "firebase/messaging"],
-          ui: ["@radix-ui/react-tabs", "@radix-ui/react-progress"]
+          firebase: ["firebase/app", "firebase/auth", "firebase/analytics", "firebase/messaging", "firebase/firestore"],
+          react: ["react", "react-dom"],
+          lucide: ["lucide-react"],
+          ui: [
+            "@radix-ui/react-tabs",
+            "@radix-ui/react-progress",
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-tooltip",
+            "@hookform/resolvers",
+            "react-hook-form",
+            "zod"
+          ]
         }
       }
     }

@@ -10,7 +10,7 @@ export default tseslint.config(
     ignores: [
       "**/node_modules/**",
       "**/dist/**",
-      "coverage/**",
+      "**/coverage/**",
       "services/carbon-core/target/**",
       "apps/web/public/firebase-messaging-sw.js",
       "**/*.config.js",
