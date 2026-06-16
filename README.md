@@ -25,16 +25,13 @@ Core outcomes:
 - Build habits through badges, eco points, leaderboards, and challenges.
 - Measure real impact as CO2 saved, trees equivalent, money saved, and sustainability score.
 
-## 2. Problem Analysis
+## 2. Problem Statement Alignment
 
-People often want to live more sustainably but face four barriers:
+**The Problem Statement:**
+People and organizations often want to live and operate more sustainably but face critical barriers. Carbon footprint data is abstract, manual tracking is tedious without intelligent automation, generic tips fail to adapt to personal lifestyles, and progress lacks predictive modeling. Without an integrated, data-driven approach, motivation to achieve sustainability goals drops rapidly. 
 
-- Carbon data is abstract and difficult to connect to daily actions.
-- Manual tracking is tedious and loses accuracy without receipts or bills.
-- Generic tips do not adapt to lifestyle, location, or goals.
-- Motivation drops when progress is invisible or isolated.
-
-EcoTrack AI solves this by combining transparent calculations, Gemini coaching, OCR automation, forecasts, gamification, and community accountability.
+**Our Solution:**
+EcoTrack AI is a Google Cloud and Gemini AI-powered sustainability platform specifically built to solve this problem statement for the hackathon. By utilizing cutting-edge technologies like Rustlang for high-performance carbon calculations and ReactJS for an intuitive frontend, our solution provides seamless OCR automation for tracking, Vertex AI predictions for forecasting, and Gemini AI for hyper-personalized sustainability coaching. We align perfectly with the core goals of empowering individuals to take meaningful, measurable climate action.
 
 ## 3. Unique Selling Points
 

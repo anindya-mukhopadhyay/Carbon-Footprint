@@ -19,6 +19,13 @@ const defaults: FootprintInput = {
   shoppingSpend: 140
 };
 
+/**
+ * Calculator Component
+ * @description A smart calculator that estimates the user's carbon footprint
+ * based on input variables across transport, home energy, food, and purchases.
+ * Computes live scores and provides real-time sustainability insights.
+ * @returns {JSX.Element} The rendered calculator section.
+ */
 export function Calculator() {
   const [form, setForm] = useState(defaults);
   const [result, setResult] = useState<CarbonBreakdown>(() => calculateFootprint(defaults));
