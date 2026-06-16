@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Calculator as CalculatorIcon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,9 +23,11 @@ export function Calculator() {
   const [form, setForm] = useState(defaults);
   const [result, setResult] = useState<CarbonBreakdown>(() => calculateFootprint(defaults));
 
-  function updateNumber(field: keyof FootprintInput, value: string) {
+  const updateNumber = useCallback((field: keyof FootprintInput, value: string) => {
     setForm((current) => ({ ...current, [field]: Math.max(0, Number(value) || 0) }));
-  }
+  }, []);
+
+  const score = useMemo(() => calculateScore(result.monthly), [result.monthly]);
 
   return (
     <section className="calculator-section section-shell" id="calculator" aria-labelledby="calc-title">
@@ -149,10 +151,10 @@ export function Calculator() {
           </div>
           <div
             className="score-ring"
-            style={{ "--score": `${calculateScore(result.monthly) * 3.6}deg` } as React.CSSProperties}
+            style={{ "--score": `${score * 3.6}deg` } as React.CSSProperties}
           >
             <div>
-              <strong>{calculateScore(result.monthly)}</strong>
+              <strong>{score}</strong>
               <span>Eco score</span>
             </div>
           </div>

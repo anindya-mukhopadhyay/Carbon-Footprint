@@ -46,8 +46,8 @@ Return JSON only:
       }
     });
 
-    let text = response.text;
-    console.log("RAW GEMINI TEXT:", text);
+    const textResponse = response.candidates?.[0];
+    let text = textResponse?.content?.parts?.[0]?.text;
     if (!text) return fallbackCoach(input);
 
     text = text.trim();

@@ -15,7 +15,6 @@ if (process.env["NODE_ENV"] !== "production") {
       try {
         // eslint-disable-next-line security/detect-non-literal-fs-filename
         const content = fs.readFileSync(p, "utf-8");
-        console.log(`Loaded env file from: ${p}`);
         for (const line of content.split(/\r?\n/)) {
           const trimmed = line.trim();
           if (!trimmed || trimmed.startsWith("#")) continue;
@@ -57,5 +56,3 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse(process.env);
-console.log(`env.VERTEX_PROJECT_ID is parsed as: ${env.VERTEX_PROJECT_ID}`);
-console.log(`env.VERTEX_MODEL is parsed as: ${env.VERTEX_MODEL}`); // Reload env again
