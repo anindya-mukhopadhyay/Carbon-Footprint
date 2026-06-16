@@ -1,5 +1,8 @@
 import request from "supertest";
 import { createApp } from "../app.js";
+import { env } from "../config/env.js";
+
+env.VERTEX_PROJECT_ID = ""; // Disable live API in tests
 
 const app = createApp();
 

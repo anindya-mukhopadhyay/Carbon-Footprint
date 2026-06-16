@@ -1,4 +1,40 @@
 import { z } from "zod";
+import { join } from "path";
+import fs from "fs";
+
+if (process.env["NODE_ENV"] !== "production") {
+  const possiblePaths = [
+    join(process.cwd(), ".env"),
+    join(process.cwd(), "../.env"),
+    join(process.cwd(), "../../.env"),
+    join(process.cwd(), "services/api/.env"),
+  ];
+  for (const p of possiblePaths) {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    if (fs.existsSync(p)) {
+      try {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        const content = fs.readFileSync(p, "utf-8");
+        console.log(`Loaded env file from: ${p}`);
+        for (const line of content.split(/\r?\n/)) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) continue;
+          const index = trimmed.indexOf("=");
+          if (index === -1) continue;
+          const key = trimmed.slice(0, index).trim();
+          let value = trimmed.slice(index + 1).trim();
+          if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+            value = value.slice(1, -1);
+          }
+          process.env[key] = value;
+        }
+        break;
+      } catch (err) {
+        console.warn(`Could not read env file ${p}:`, err);
+      }
+    }
+  }
+}
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -21,3 +57,5 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse(process.env);
+console.log(`env.VERTEX_PROJECT_ID is parsed as: ${env.VERTEX_PROJECT_ID}`);
+console.log(`env.VERTEX_MODEL is parsed as: ${env.VERTEX_MODEL}`); // Reload env again

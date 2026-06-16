@@ -12,7 +12,7 @@ export const mapsRouter = Router();
 
 mapsRouter.get("/places", async (req, res) => {
   const query = querySchema.parse(req.query);
-  if (!env.GOOGLE_MAPS_API_KEY) {
+  if (!env.GOOGLE_MAPS_API_KEY || env.GOOGLE_MAPS_API_KEY === "replace-me" || !env.GOOGLE_MAPS_API_KEY.startsWith("AIza")) {
     res.json({ places: [], configured: false });
     return;
   }

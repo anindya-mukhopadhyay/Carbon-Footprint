@@ -1,4 +1,4 @@
-import { VertexAI } from "@google-cloud/vertexai";
+import { GoogleGenAI } from "@google/genai";
 import { env } from "../config/env.js";
 
 type CoachInput = {
@@ -17,12 +17,13 @@ export async function generateCoachResponse(input: CoachInput): Promise<CoachRes
   if (!env.VERTEX_PROJECT_ID) return fallbackCoach(input);
 
   try {
-    const vertex = new VertexAI({
+    const ai = new GoogleGenAI({
+      vertexai: true,
       project: env.VERTEX_PROJECT_ID,
       location: env.VERTEX_LOCATION
     });
-    const model = vertex.getGenerativeModel({ model: env.VERTEX_MODEL });
-    const response = await model.generateContent({
+    const response = await ai.models.generateContent({
+      model: env.VERTEX_MODEL,
       contents: [
         {
           role: "user",
@@ -38,18 +39,33 @@ Return JSON only:
           ]
         }
       ],
-      generationConfig: {
+      config: {
         responseMimeType: "application/json",
         temperature: 0.35,
-        maxOutputTokens: 500
+        maxOutputTokens: 2000
       }
     });
 
-    const text = response.response.candidates?.[0]?.content.parts[0]?.text;
+    let text = response.text;
+    console.log("RAW GEMINI TEXT:", text);
     if (!text) return fallbackCoach(input);
-    return JSON.parse(text) as CoachResult;
+
+    text = text.trim();
+    if (text.startsWith("```")) {
+      const match = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(text);
+      if (match && match[1]) {
+        text = match[1].trim();
+      }
+    }
+
+    try {
+      return JSON.parse(text) as CoachResult;
+    } catch (parseError) {
+      console.error("Failed to parse response text as JSON:", text);
+      throw parseError;
+    }
   } catch (error) {
-    console.error("Vertex AI coach failed, falling back:", error);
+    console.error("Google Gen AI coach failed, falling back:", error);
     return fallbackCoach(input);
   }
 }

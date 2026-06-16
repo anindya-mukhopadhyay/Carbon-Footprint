@@ -1,4 +1,4 @@
-import { VertexAI } from "@google-cloud/vertexai";
+import { GoogleGenAI } from "@google/genai";
 import { env } from "../config/env.js";
 
 type Forecast = {
@@ -10,29 +10,35 @@ type Forecast = {
 export async function forecastEmissions(history: number[]): Promise<Forecast> {
   if (!env.VERTEX_PROJECT_ID || history.length < 2) return deterministicForecast(history);
 
-  const vertex = new VertexAI({
-    project: env.VERTEX_PROJECT_ID,
-    location: env.VERTEX_LOCATION
-  });
-  const model = vertex.getGenerativeModel({ model: env.VERTEX_MODEL });
-  const response = await model.generateContent({
-    contents: [
-      {
-        role: "user",
-        parts: [
-          {
-            text: `Forecast the next 3 monthly carbon emissions from this kg CO2e series:
+  try {
+    const ai = new GoogleGenAI({
+      vertexai: true,
+      project: env.VERTEX_PROJECT_ID,
+      location: env.VERTEX_LOCATION
+    });
+    const response = await ai.models.generateContent({
+      model: env.VERTEX_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `Forecast the next 3 monthly carbon emissions from this kg CO2e series:
 ${history.join(", ")}. Return JSON only with months [{month,predictedKg,lowerKg,upperKg}],
 confidence from 0 to 1, and a one-sentence narrative. Do not imply causal certainty.`
-          }
-        ]
-      }
-    ],
-    generationConfig: { responseMimeType: "application/json", temperature: 0.2 }
-  });
+            }
+          ]
+        }
+      ],
+      config: { responseMimeType: "application/json", temperature: 0.2 }
+    });
 
-  const text = response.response.candidates?.[0]?.content.parts[0]?.text;
-  return text ? (JSON.parse(text) as Forecast) : deterministicForecast(history);
+    const text = response.text;
+    return text ? (JSON.parse(text) as Forecast) : deterministicForecast(history);
+  } catch (error) {
+    console.error("Google Gen AI forecast failed, falling back:", error);
+    return deterministicForecast(history);
+  }
 }
 
 function deterministicForecast(history: number[]): Forecast {
